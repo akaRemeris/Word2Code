@@ -5,7 +5,7 @@ from collections import defaultdict, OrderedDict
 from general_utils import (SEQ_TYPES, PAD_TOKEN, BOS_TOKEN, EOS_TOKEN)
 
 
-def dict2dict(foo):
+def dict2dict(foo2wrap):
     """
     Decorator for somewhat function polymorphism. If passed data type is
     dict, perform passed function map-like execution on each dict item and return 
@@ -13,15 +13,14 @@ def dict2dict(foo):
     """
     def _wrapper(data: Union[dict , list], **kwargs):
         if isinstance(data, dict):
-            processed_dict = dict()
+            processed_dict = {}
             for seq_type in SEQ_TYPES:
                 data_chunk = data[seq_type]
-                processed_chunk = foo(data_chunk, **kwargs)
+                processed_chunk = foo2wrap(data_chunk, **kwargs)
                 processed_dict[seq_type] = processed_chunk
             return processed_dict
-        else:
-            processed_data = foo(data, **kwargs)
-            return processed_data
+        processed_data = foo2wrap(data, **kwargs)
+        return processed_data
     return _wrapper
         
 
@@ -44,7 +43,7 @@ def read_src_tgt_dataset(path: str, filename: dict) -> Dict:
     # read two files contains SRC and TGT texts
     for seq_type in SEQ_TYPES:
         # open file according to the type of sequences needed (SRC or TGT)
-        with open(path + filename[seq_type]) as fstream:
+        with open(path + filename[seq_type], encoding='utf-8') as fstream:
             data[seq_type] = fstream.readlines()
     return data
 
@@ -146,7 +145,7 @@ class Tokenizer(object):
                 with vocabulary.
         """
         # TODO: change documentation
-        encoded_texts = dict()
+        encoded_texts = {}
         
         corpus = []
         # produce encoding for SRC and TGT sequences
@@ -155,7 +154,7 @@ class Tokenizer(object):
             for token in doc:
                 tokenized_doc.append(self.vocabulary[token])
             corpus.append(tokenized_doc)
-        # TODO: add decorator for dict/list preproces    
+        # TODO: add decorator for dict/list preproces
         return encoded_texts
         
     def build_vocabulary(self, data: Union[dict, list]) -> None:
@@ -228,9 +227,9 @@ def build_vocabulary(data: dict) -> dict:
     special_tokens = [PAD_TOKEN, BOS_TOKEN, EOS_TOKEN]
     sorted_keys = special_tokens + sorted(
         token_occ_counter, 
-        key=lambda x: (token_occ_counter[x], x), 
+        key=lambda x: (token_occ_counter[x], x),
         reverse=True)
-    
+   
     # assign id for each token according to their sorted position
     token_indexes = [i for i in range(len(sorted_keys))]
     vocabulary = OrderedDict(zip(sorted_keys, token_indexes))
@@ -291,7 +290,7 @@ def encode_texts(vocabulary: Dict,
             Dictionary of target and sequence texts tokenized and encoded 
             with vocabulary.
     """
-    encoded_texts = dict()
+    encoded_texts = {}
     
     corpus = []
     # produce encoding for SRC and TGT sequences
