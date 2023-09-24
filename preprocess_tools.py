@@ -6,6 +6,11 @@ from general_utils import (SEQ_TYPES, PAD_TOKEN, BOS_TOKEN, EOS_TOKEN)
 
 
 def dict2dict(foo):
+    """
+    Decorator for somewhat function polymorphism. If passed data type is
+    dict, perform passed function map-like execution on each dict item and return 
+    dict with the same keys. Else list type is expected, and no processing is required.
+    """
     def _wrapper(data: Union[dict , list], **kwargs):
         if isinstance(data, dict):
             processed_dict = dict()
