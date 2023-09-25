@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-config', 
                         dest="config",
-                        default='./configurations/config.yaml',
+                        default='./config.yaml',
                         type=str,
                         help='')
     args = parser.parse_args()

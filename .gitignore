@@ -1,0 +1,5 @@
+data
+notebooks
+*old*
+__pycache__
+model

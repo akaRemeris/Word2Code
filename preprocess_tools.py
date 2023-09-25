@@ -39,7 +39,7 @@ def read_src_tgt_dataset(path: str, filename: dict) -> Dict:
         data (dict): 
             Dictionary with SRC and TGT keys and lists of string rows as values
     """
-    data = dict()    
+    data = {}    
     # read two files contains SRC and TGT texts
     for seq_type in SEQ_TYPES:
         # open file according to the type of sequences needed (SRC or TGT)
