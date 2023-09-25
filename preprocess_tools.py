@@ -22,7 +22,7 @@ def dict2dict(foo2wrap):
         processed_data = foo2wrap(data, **kwargs)
         return processed_data
     return _wrapper
-        
+
 
 def read_src_tgt_dataset(path: str, filename: dict) -> Dict:
     """
@@ -39,7 +39,7 @@ def read_src_tgt_dataset(path: str, filename: dict) -> Dict:
         data (dict): 
             Dictionary with SRC and TGT keys and lists of string rows as values
     """
-    data = {}    
+    data = {}
     # read two files contains SRC and TGT texts
     for seq_type in SEQ_TYPES:
         # open file according to the type of sequences needed (SRC or TGT)
@@ -53,7 +53,7 @@ class Tokenizer(object):
     def __init__(self) -> None:
         self.vocabulary = None
 
-    def _get_data_chunk(data: Union[dict, list]) -> list:
+    def _get_data_chunk(self, data: Union[dict, list]) -> list:
         """
         Yields data elements depending on type of data.
         If data is a dict containing two types of sequences (lists) as values,
@@ -75,7 +75,7 @@ class Tokenizer(object):
     
     # TODO: add courpus tokenize function
     # Define a function that tokenizes the input string
-    def tokenize_doc(doc: str, skip_special_tokens: bool = False) -> List[str]:
+    def tokenize_doc(self, doc: str, skip_special_tokens: bool = False) -> List[str]:
         """
         This function takes in a string of document and a boolean 
         variable `skip_special_tokens` that tells whether to 
@@ -98,9 +98,9 @@ class Tokenizer(object):
         """
 
         # Tokenize the input document by splitting it into individual words
-        doc = [token for token in doc.split()]
+        doc = list(doc.split())
 
-        # If `skip_special_tokens` is `False`, add two 
+        # If `skip_special_tokens` is `False`, add two
         # special tokens to the beginning and end of the tokenized document
         if not skip_special_tokens:
             doc = [BOS_TOKEN] + doc + [EOS_TOKEN]
@@ -109,8 +109,8 @@ class Tokenizer(object):
         return doc
     
     @dict2dict
-    def tokenize_corpus(self, 
-                        corpus: list, 
+    def tokenize_corpus(self,
+                        corpus: list,
                         skip_special_tokens: bool = False):
         tokenized_corpus = []
         for doc in corpus:
@@ -187,9 +187,9 @@ class Tokenizer(object):
             token_occ_counter, 
             key=lambda x: (token_occ_counter[x], x), 
             reverse=True)
-    
+
         # assign id for each token according to their sorted position
-        token_indexes = [i for i in range(len(sorted_keys))]
+        token_indexes = list(range(len(sorted_keys)))
         self.vocabulary = OrderedDict(zip(sorted_keys, token_indexes))
 
 
@@ -210,28 +210,28 @@ def build_vocabulary(data: dict) -> dict:
             and their ids as values sorted based 
             on tokens occurence frequency.
     """
-    # dict for token occurence counting, initialized with 0 
+    # dict for token occurence counting, initialized with 0
     # for each new key and thus available for incrementation
     token_occ_counter = defaultdict(int)
-    
+
     # perform token enumeration for SRC and TGT sequences
     for seq_type in SEQ_TYPES:
         # use yield
         for doc in data[seq_type]:
             # tokenize and produce iteration by each token
             for token in doc.split():
-                # if vocabulary contains token, we increment value assigned 
+                # if vocabulary contains token, we increment value assigned
                 # to the token, else we add new key and assign 1 to it
                 token_occ_counter[token] += 1
     # sort counted tokens in decreasing order and append them to special tokens
     special_tokens = [PAD_TOKEN, BOS_TOKEN, EOS_TOKEN]
     sorted_keys = special_tokens + sorted(
-        token_occ_counter, 
+        token_occ_counter,
         key=lambda x: (token_occ_counter[x], x),
         reverse=True)
-   
+
     # assign id for each token according to their sorted position
-    token_indexes = [i for i in range(len(sorted_keys))]
+    token_indexes = list(range(len(sorted_keys)))
     vocabulary = OrderedDict(zip(sorted_keys, token_indexes))
     return vocabulary
 
@@ -260,9 +260,9 @@ def doc_tokenizer(doc: str, skip_special_tokens: bool = True) -> List[str]:
     """
 
     # Tokenize the input document by splitting it into individual words
-    doc = [token for token in doc.split()]
+    doc = list(doc.split())
 
-    # If `skip_special_tokens` is `False`, add two 
+    # If `skip_special_tokens` is `False`, add two
     # special tokens to the beginning and end of the tokenized document
     if not skip_special_tokens:
         doc = [BOS_TOKEN] + doc + [EOS_TOKEN]
@@ -271,8 +271,8 @@ def doc_tokenizer(doc: str, skip_special_tokens: bool = True) -> List[str]:
     return doc
 
 
-def encode_texts(vocabulary: Dict, 
-                 data: Dict, 
+def encode_texts(vocabulary: Dict,
+                 data: Dict,
                  skip_special_tokens: bool = False) -> Dict:
     """
     Function accepts vocabulary and dictionary of 
@@ -291,7 +291,7 @@ def encode_texts(vocabulary: Dict,
             with vocabulary.
     """
     encoded_texts = {}
-    
+
     corpus = []
     # produce encoding for SRC and TGT sequences
     for seq_type in SEQ_TYPES:
@@ -302,5 +302,5 @@ def encode_texts(vocabulary: Dict,
                 tokenized_doc.append(vocabulary[token])
             corpus.append(tokenized_doc)
         encoded_texts[seq_type] = corpus
-     
+
     return encoded_texts
