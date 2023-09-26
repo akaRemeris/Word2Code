@@ -291,16 +291,16 @@ def encode_texts(vocabulary: Dict,
             with vocabulary.
     """
     encoded_texts = {}
-    
-    corpus = []
+
     # produce encoding for SRC and TGT sequences
     for seq_type in SEQ_TYPES:
+        encoded_corpus = []
         for doc in data[seq_type]:
-            doc = doc_tokenizer(doc=doc, skip_special_tokens=skip_special_tokens)
-            tokenized_doc = []
-            for token in doc:
-                tokenized_doc.append(vocabulary[token])
-            corpus.append(tokenized_doc)
-        encoded_texts[seq_type] = corpus
-     
+            tokenized_doc = doc_tokenizer(doc=doc, skip_special_tokens=skip_special_tokens)
+            encoded_doc = []
+            for token in tokenized_doc:
+                encoded_doc.append(vocabulary[token])
+            encoded_corpus.append(encoded_doc)
+        encoded_texts[seq_type] = encoded_corpus
+
     return encoded_texts
