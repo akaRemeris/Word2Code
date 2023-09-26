@@ -1,6 +1,6 @@
 """Functions for text data preprocessing, vocabulary building."""
 
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Callable
 from collections import defaultdict, OrderedDict
 from general_utils import (SEQ_TYPES, PAD_TOKEN, BOS_TOKEN, EOS_TOKEN)
 
@@ -11,12 +11,12 @@ def dict2dict(foo2wrap):
     dict, perform passed function map-like execution on each dict item and return 
     dict with the same keys. Else list type is expected, and no processing is required.
     """
-    def _wrapper(data: Union[dict , list], **kwargs):
+    def _wrapper(self, data: Union[dict , list], **kwargs):
         if isinstance(data, dict):
             processed_dict = {}
             for seq_type in SEQ_TYPES:
                 data_chunk = data[seq_type]
-                processed_chunk = foo2wrap(data_chunk, **kwargs)
+                processed_chunk = foo2wrap(self, data_chunk, **kwargs)
                 processed_dict[seq_type] = processed_chunk
             return processed_dict
         processed_data = foo2wrap(data, **kwargs)
@@ -47,11 +47,47 @@ def read_src_tgt_dataset(path: str, filename: dict) -> Dict:
             data[seq_type] = fstream.readlines()
     return data
 
+def default_tokenization(doc: str, skip_special_tokens: bool = False) -> List[str]:
+    """
+    This function takes in a string of document and a boolean 
+    variable `skip_special_tokens` that tells whether to 
+    skip special tokens or not. It tokenizes the input document
+    by splitting it into individual words. If `skip_special_tokens`
+    is `False`, it adds two special tokens; BOS_TOKEN at the beginning 
+    and EOS_TOKEN at the end of the tokenized document using list notation []. 
+    Finally, it returns the tokenized document as a list of tokens.
+
+    Args:
+        doc (str): 
+            A string of document
+        skip_special_tokens (bool): 
+            A boolean variable that represents whether
+            to skip special tokens or not. Default value is True.
+        
+    Returns:
+        doc (list): 
+            List of str tokens
+    """
+
+    # Tokenize the input document by splitting it into individual words
+    doc = list(doc.split())
+
+    # If `skip_special_tokens` is `False`, add two
+    # special tokens to the beginning and end of the tokenized document
+    if not skip_special_tokens:
+        doc = [BOS_TOKEN] + doc + [EOS_TOKEN]
+
+    # Return the tokenized document as a list of tokens
+    return doc
+
 
 # TODO: branch model pipeline with Tokenizer and without
 class Tokenizer(object):
-    def __init__(self) -> None:
+    def __init__(self,
+                 tokenization_foo: Callable[[list, bool], list]=default_tokenization) -> None:
         self.vocabulary = None
+        self.tokenize_doc = tokenization_foo
+        
 
     def _get_data_chunk(self, data: Union[dict, list]) -> list:
         """
@@ -73,40 +109,7 @@ class Tokenizer(object):
         else:
             yield data
     
-    # TODO: add courpus tokenize function
     # Define a function that tokenizes the input string
-    def tokenize_doc(self, doc: str, skip_special_tokens: bool = False) -> List[str]:
-        """
-        This function takes in a string of document and a boolean 
-        variable `skip_special_tokens` that tells whether to 
-        skip special tokens or not. It tokenizes the input document
-        by splitting it into individual words. If `skip_special_tokens`
-        is `False`, it adds two special tokens; BOS_TOKEN at the beginning 
-        and EOS_TOKEN at the end of the tokenized document using list notation []. 
-        Finally, it returns the tokenized document as a list of tokens.
-
-        Args:
-            doc (str): 
-                A string of document
-            skip_special_tokens (bool): 
-                A boolean variable that represents whether
-                to skip special tokens or not. Default value is True.
-            
-        Returns:
-            doc (list): 
-                List of str tokens
-        """
-
-        # Tokenize the input document by splitting it into individual words
-        doc = list(doc.split())
-
-        # If `skip_special_tokens` is `False`, add two
-        # special tokens to the beginning and end of the tokenized document
-        if not skip_special_tokens:
-            doc = [BOS_TOKEN] + doc + [EOS_TOKEN]
-
-        # Return the tokenized document as a list of tokens
-        return doc
     
     @dict2dict
     def tokenize_corpus(self,
@@ -119,17 +122,13 @@ class Tokenizer(object):
         return tokenized_corpus
     
     def encode_doc(self, tokenized_doc: List[str]) -> List[int]:
- 
-
+        encoded_doc = []
         for token in tokenized_doc:
-            self.vocabulary[token]
-        
-        return doc
+            encoded_doc.append(self.vocabulary[token])
+        return encoded_doc
     
     @dict2dict
-    def encode_texts(self,
-                     tokenized_data: list, 
-                     skip_special_tokens: bool = False) -> Dict:
+    def encode_corpus(self, tokenized_data: list) -> Dict:
         """
         Function accepts vocabulary and dictionary of 
         untokenized list of texts and returns dictionary
@@ -144,20 +143,16 @@ class Tokenizer(object):
                 Dictionary of target and sequence texts tokenized and encoded 
                 with vocabulary.
         """
-        # TODO: change documentation
-        encoded_texts = {}
-        
-        corpus = []
+        # TODO: change documentation with decorator information
+
+        encoded_corpus = []
         # produce encoding for SRC and TGT sequences
         for doc in tokenized_data:
-            tokenized_doc = []
-            for token in doc:
-                tokenized_doc.append(self.vocabulary[token])
-            corpus.append(tokenized_doc)
-        # TODO: add decorator for dict/list preproces
-        return encoded_texts
+            encoded_corpus.append(self.encode_doc(doc))
+        return encoded_corpus
         
-    def build_vocabulary(self, data: Union[dict, list]) -> None:
+    def build_vocabulary(self,
+                         tokenized_data: Union[dict, list]) -> None:
         """
         This function takes dict of SRC and TGT lists of strings. 
         Performs basic split tokenization on each row and initialize 
@@ -169,23 +164,31 @@ class Tokenizer(object):
                 List or dict of lists, those lists represent chunks of string docs.
 
         """
-        # dict for token occurence counting, initialized with 0 
+        # dict for token occurence counting, initialized with 0
         # for each new key and thus available for incrementation
         token_occ_counter = defaultdict(int)
 
         # iterate through all list or dict data chunks
-        for data_chunk in self._get_data_chunk(data):
-            for doc in data_chunk:
+        for data_chunk in self._get_data_chunk(tokenized_data):
+            for tokenized_doc in data_chunk:
                 # tokenize and produce iteration by each token
-                for token in doc.split():
-                    # if vocabulary contains token, we increment value assigned 
+                for token in tokenized_doc:
+                    # if vocabulary contains token, we increment value assigned
                     # to the token, else we add new key and assign 1 to it
                     token_occ_counter[token] += 1
         # sort counted tokens in decreasing order and append them to special tokens
         special_tokens = [PAD_TOKEN, BOS_TOKEN, EOS_TOKEN]
+
+        # reset special tokens counters
+        for special_token in special_tokens:
+            try:
+                token_occ_counter.pop(special_token)
+            except KeyError:
+                pass
+
         sorted_keys = special_tokens + sorted(
-            token_occ_counter, 
-            key=lambda x: (token_occ_counter[x], x), 
+            token_occ_counter,
+            key=lambda x: (token_occ_counter[x], x),
             reverse=True)
 
         # assign id for each token according to their sorted position
@@ -292,15 +295,15 @@ def encode_texts(vocabulary: Dict,
     """
     encoded_texts = {}
 
-    corpus = []
     # produce encoding for SRC and TGT sequences
     for seq_type in SEQ_TYPES:
+        encoded_corpus = []
         for doc in data[seq_type]:
-            doc = doc_tokenizer(doc=doc, skip_special_tokens=skip_special_tokens)
-            tokenized_doc = []
-            for token in doc:
-                tokenized_doc.append(vocabulary[token])
-            corpus.append(tokenized_doc)
-        encoded_texts[seq_type] = corpus
+            tokenized_doc = doc_tokenizer(doc=doc, skip_special_tokens=skip_special_tokens)
+            encoded_doc = []
+            for token in tokenized_doc:
+                encoded_doc.append(vocabulary[token])
+            encoded_corpus.append(encoded_doc)
+        encoded_texts[seq_type] = encoded_corpus
 
     return encoded_texts
