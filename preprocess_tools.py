@@ -81,13 +81,13 @@ def default_tokenization(doc: str, skip_special_tokens: bool = False) -> List[st
     return doc
 
 
-# TODO: branch model pipeline with Tokenizer and without
+# TODO: add documentation
 class Tokenizer(object):
     def __init__(self,
                  tokenization_foo: Callable[[list, bool], list]=default_tokenization) -> None:
         self.vocabulary = None
         self.tokenize_doc = tokenization_foo
-        
+
 
     def _get_data_chunk(self, data: Union[dict, list]) -> list:
         """
@@ -108,8 +108,8 @@ class Tokenizer(object):
                 yield data[key]
         else:
             yield data
-    
-    # Define a function that tokenizes the input string
+
+    #TODO: Define a function that tokenizes the input string
     
     @dict2dict
     def tokenize_corpus(self,
@@ -150,7 +150,7 @@ class Tokenizer(object):
         for doc in tokenized_data:
             encoded_corpus.append(self.encode_doc(doc))
         return encoded_corpus
-        
+
     def build_vocabulary(self,
                          tokenized_data: Union[dict, list]) -> None:
         """

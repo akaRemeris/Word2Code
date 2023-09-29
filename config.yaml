@@ -18,7 +18,7 @@ eval_dataset:
 
 
 # logging and saving options
-log_run_name: 'test_run'
+log_run_name: 'test_run_with_tokenizer'
 save_logs: False
 save_model: True
 verbose: True
