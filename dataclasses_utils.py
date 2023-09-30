@@ -84,7 +84,7 @@ class InferenceDataset(Dataset):
 
     def __getitem__(self, idx: int) -> torch.LongTensor:
         src_sequence = torch.LongTensor(self.encoded_data[idx])
-        tgt_sequence = torch.LongTensor(self.encoded_data[idx][1:])
+        tgt_sequence = torch.LongTensor(self.encoded_data[idx])
         return (src_sequence, tgt_sequence)
 
 def custom_collate(data):
@@ -123,7 +123,9 @@ def custom_collate(data):
             'src_lengths': src_lengths}
 
 
-def get_dataloader(encoded_data: [dict, list], config: dict) -> DataLoader:
+def get_dataloader(encoded_data: [dict, list],
+                   config: dict,
+                   drop_last: bool = True) -> DataLoader:
     if isinstance(encoded_data, dict):
         dataset = Seq2SeqDataset(encoded_data['SRC'], encoded_data['TGT'])
     else:
@@ -132,5 +134,5 @@ def get_dataloader(encoded_data: [dict, list], config: dict) -> DataLoader:
                             batch_size=config['batch_size'],
                             shuffle=True,
                             collate_fn=custom_collate,
-                            drop_last=True)
+                            drop_last=drop_last)
     return dataloader
