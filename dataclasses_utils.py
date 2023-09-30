@@ -26,8 +26,8 @@ class Seq2SeqDataset(Dataset):
     for training a sequence-to-sequence model.
     """
 
-    def __init__(self, src_sequence: torch.tensor,
-                 tgt_sequence: torch.tensor) -> None:
+    def __init__(self, src_sequence: torch.Tensor,
+                 tgt_sequence: torch.Tensor) -> None:
         """
         Constructor method for Seq2SeqDataset
 
@@ -74,6 +74,18 @@ class Seq2SeqDataset(Dataset):
         tgt_sequence = torch.LongTensor(self.tgt_sequence[idx][1:])
         return (src_sequence, tgt_sequence)
 
+class InferenceDataset(Dataset):
+    def __init__(self, encoded_data) -> None:
+        super().__init__()
+        self.encoded_data = encoded_data
+    
+    def __len__(self) -> int:
+        return len(self.encoded_data)
+
+    def __getitem__(self, idx: int) -> torch.LongTensor:
+        src_sequence = torch.LongTensor(self.encoded_data[idx])
+        tgt_sequence = torch.LongTensor(self.encoded_data[idx][1:])
+        return (src_sequence, tgt_sequence)
 
 def custom_collate(data):
     """
@@ -111,8 +123,11 @@ def custom_collate(data):
             'src_lengths': src_lengths}
 
 
-def get_dataloader(encoded_data: dict, config: dict) -> DataLoader:
-    dataset = Seq2SeqDataset(encoded_data['SRC'], encoded_data['TGT'])
+def get_dataloader(encoded_data: [dict, list], config: dict) -> DataLoader:
+    if isinstance(encoded_data, dict):
+        dataset = Seq2SeqDataset(encoded_data['SRC'], encoded_data['TGT'])
+    else:
+        dataset = InferenceDataset(encoded_data)
     dataloader = DataLoader(dataset=dataset,
                             batch_size=config['batch_size'],
                             shuffle=True,
