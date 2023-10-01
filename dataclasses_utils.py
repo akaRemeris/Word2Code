@@ -111,11 +111,13 @@ def custom_collate(data):
             'src_lengths': src_lengths}
 
 
-def get_dataloader(encoded_data: dict, batch_size: int) -> DataLoader:
+def get_dataloader(encoded_data: dict,
+                   batch_size: int,
+                   drop_last: bool = True) -> DataLoader:
     dataset = Seq2SeqDataset(encoded_data['SRC'], encoded_data['TGT'])
     dataloader = DataLoader(dataset=dataset,
                             batch_size=batch_size,
                             shuffle=True,
                             collate_fn=custom_collate,
-                            drop_last=True)
+                            drop_last=drop_last)
     return dataloader
