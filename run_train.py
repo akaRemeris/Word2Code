@@ -11,12 +11,13 @@ from train_eval_utils import run_train_eval_pipeline, save_model
 
 def inference(src_row: str,
               model: TransformeRNN,
-              tokenizer: Tokenizer,
-              config: dict):
+              tokenizer: Tokenizer):
     model.eval()
     tokenized_sample = tokenizer.tokenize_doc(src_row)
-    encoded_sample = tokenizer.encode_doc(tokenized_sample)
-    inference_dataloader = get_dataloader([encoded_sample], config, drop_last=False)
+    encoded_sample = [tokenizer.encode_doc(tokenized_sample)]
+    inference_dataloader = get_dataloader(encoded_sample,
+                                          batch_size=1,
+                                          drop_last=False)
     for batch in inference_dataloader:
         model_output = model.forward(**batch, teacher_forcing_ratio=0.0)
         predicted_ids = model_output.argmax(2).tolist()
