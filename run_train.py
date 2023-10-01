@@ -9,18 +9,21 @@ from preprocess_tools import Tokenizer, read_src_tgt_dataset
 from rnn_transformer import TransformeRNN
 from train_eval_utils import run_train_eval_pipeline, save_model
 
+def inference(src_row: str,
+              model: TransformeRNN,
+              tokenizer: Tokenizer,
+              config: dict):
+    model.eval()
+    tokenized_sample = tokenizer.tokenize_doc(src_row)
+    encoded_sample = tokenizer.encode_doc(tokenized_sample)
+    inference_dataloader = get_dataloader([encoded_sample], config, drop_last=False)
+    for batch in inference_dataloader:
+        model_output = model.forward(**batch, teacher_forcing_ratio=0.0)
+        predicted_ids = model_output.argmax(2).tolist()
+    decoded_doc = tokenizer.decode_doc(predicted_ids[0])
+    return ' '.join(decoded_doc)
 
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-config',
-                        dest="config",
-                        default='./config.yaml',
-                        type=str,
-                        help='')
-    args = parser.parse_args()
-    with open(args.config, "r", encoding='utf-8') as ymlfile:
-        config = yaml.load(ymlfile, Loader=yaml.FullLoader)
+def main(config: dict):
 
     init_random_seed(config['seed'])
     train_data = read_src_tgt_dataset(path=config['dataset_path'],
@@ -48,3 +51,16 @@ if __name__ == '__main__':
                             config=config)
     if config['save_model']:
         save_model(tokenizer, model, config)
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-config',
+                        dest="config",
+                        default='./config.yaml',
+                        type=str,
+                        help='')
+    args = parser.parse_args()
+    with open(args.config, "r", encoding='utf-8') as ymlfile:
+        config_dict = yaml.load(ymlfile, Loader=yaml.FullLoader)
+    main(config_dict)
