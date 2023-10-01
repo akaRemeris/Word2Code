@@ -82,7 +82,7 @@ def default_tokenization(doc: str, skip_special_tokens: bool = False) -> List[st
 
 
 # TODO: add documentation
-class Tokenizer(object):
+class Tokenizer():
     def __init__(self,
                  tokenization_foo: Callable[[list, bool], list]=default_tokenization) -> None:
         self.vocabulary = None

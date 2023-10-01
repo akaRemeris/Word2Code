@@ -6,7 +6,8 @@ from typing import List, Tuple
 import numpy as np
 import torch
 from general_utils import BOS_IDX, EOS_IDX
-from preprocess_tools import doc_tokenizer
+from preprocess_tools import Tokenizer
+from dataclasses_utils import get_dataloader
 
 
 def get_new_item(item: dict, topk_pairs) -> None:    
@@ -29,10 +30,12 @@ def get_new_item(item: dict, topk_pairs) -> None:
         return new_item
 
 
-def beamsearch_generation(model: torch.nn.Module, 
-                          src_seq: str, 
-                          max_seq_len: int = 50, 
-                          beamsize: int = 5, 
+def beamsearch_generation(model: torch.nn.Module,
+                          src_seq: str,
+                          src_tokenizer: Tokenizer,
+                          tgt_tokenizer: Tokenizer,
+                          max_seq_len: int = 50,
+                          beamsize: int = 5,
                           n_hypos: int = 5) -> List[Tuple]:
     """
     This function generates a sequence 
@@ -57,15 +60,15 @@ def beamsearch_generation(model: torch.nn.Module,
     # will only use the model for inference
     with torch.no_grad():
         
-        src_tokenized = doc_tokenizer(src_seq)
+        src_tokenized = src_tokenizer.tokenize_doc(src_seq)
+        src_encoded = src_tokenizer.encode_doc(src_tokenized)
+        inference_dataloader = get_dataloader([src_encoded], batch_size=1, drop_last=False)
+        packed_seq = next(iter(inference_dataloader))
         
-        # Get the length of the source sequence
-        src_seq_length = [(src_seq != 0).sum().item()]
-
         # Pass the source sequence through the encoder
-        encoder_output, last_hidden_state = model.encoder(src_seq, 
-                                                          src_seq_length)
-        
+        encoder_output, last_hidden_state = model.encoder(packed_seq['src_ids'],
+                                                          packed_seq['src_lengths'])
+
         # Initialize the beam search starting item
         cur_ids = [BOS_IDX]
         cur_item = {
