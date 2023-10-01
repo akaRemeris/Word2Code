@@ -86,6 +86,7 @@ class Tokenizer(object):
     def __init__(self,
                  tokenization_foo: Callable[[list, bool], list]=default_tokenization) -> None:
         self.vocabulary = None
+        self.reversed_vocabulary = None
         self.tokenize_doc = tokenization_foo
 
 
@@ -126,6 +127,17 @@ class Tokenizer(object):
         for token in tokenized_doc:
             encoded_doc.append(self.vocabulary[token])
         return encoded_doc
+    
+    def decode_doc(self, encoded_doc: List[str]) -> List[int]:
+        if self.reversed_vocabulary is None:
+            self.reversed_vocabulary = dict(map(reversed, self.vocabulary.items()))
+        decoded_doc = []
+        for token_id in encoded_doc:
+            token = self.reversed_vocabulary[token_id]
+            if token is EOS_TOKEN:
+                break
+            decoded_doc.append(token)
+        return decoded_doc
     
     @dict2dict
     def encode_corpus(self, tokenized_data: list) -> Dict:
