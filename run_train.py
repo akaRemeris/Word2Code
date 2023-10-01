@@ -34,8 +34,8 @@ if __name__ == '__main__':
     tokenizer.build_vocabulary(train_tokenized)
     train_encoded = tokenizer.encode_corpus(train_tokenized)
     eval_encoded = tokenizer.encode_corpus(eval_tokenized)
-    train_dataloader = get_dataloader(train_encoded, config)
-    eval_dataloader = get_dataloader(eval_encoded, config)
+    train_dataloader = get_dataloader(train_encoded, config['batch_size'])
+    eval_dataloader = get_dataloader(eval_encoded, config['batch_size'])
 
     vocabulary_size = len(tokenizer.vocabulary)
     init_random_seed(config['seed'])
