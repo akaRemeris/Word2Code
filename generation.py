@@ -31,7 +31,7 @@ def get_new_item(base_item: BSNode, candidate: tuple) -> None:
 
     # Create a new item from the current hypothesis and the new candidate
     base_denormed_score = base_hypothesis_score * np.sqrt(cur_hypo_len)
-    new_score = (base_denormed_score - pair_score) 
+    new_score = (base_denormed_score - pair_score)
     new_normed_score = new_score / np.sqrt(cur_hypo_len + 1)
     new_item = BSNode(
         score=new_normed_score,
@@ -82,13 +82,14 @@ def beamsearch_generation(model: torch.nn.Module,
 
         # Initialize the beam search starting item
         cur_ids = BOS_IDX
-        cur_item = {
-            'score': 0,
-            'base_ids': [],
-            'hypothetical_id': cur_ids,
-            'hidden_state': last_hidden_state,
-            'cell_state': torch.zeros(last_hidden_state.shape)
-        }
+
+        cur_item = BSNode(
+            score=0,
+            base_ids=[],
+            hypothetical_id=cur_ids,
+            hidden_state=last_hidden_state,
+            cell_state=torch.zeros(last_hidden_state.shape)
+        )
         
         final_hypotheses = []
         partial_hypotheses = [cur_item]
@@ -97,11 +98,11 @@ def beamsearch_generation(model: torch.nn.Module,
         while partial_hypotheses:
             cur_item = heapq.heappop(partial_hypotheses)
 
-            model_input_id = torch.tensor([cur_item['hypothetical_id']])
+            model_input_id = torch.tensor([cur_item.hypothetical_id])
             model_input_id.unsqueeze_(0)
             
-            last_hidden_cell_states = (cur_item['hidden_state'],
-                                       cur_item['cell_state'])
+            last_hidden_cell_states = (cur_item.hidden_state,
+                                       cur_item.cell_state)
 
             # Pass the current item through the decoder
             logits, last_hidden_cell_states = model.decoder(
@@ -113,17 +114,17 @@ def beamsearch_generation(model: torch.nn.Module,
             logps = torch.log_softmax(logits, -1).squeeze(0)
             topk_pairs = logps.topk(beamsize)
 
-            cur_hypo_len = len(cur_item['base_ids'])
+            cur_hypo_len = len(cur_item.base_ids)
             # Create new items from the topk candidates
             for candidate in zip(topk_pairs.values, topk_pairs.indices):
-                new_item = get_new_item(cur_item, candidate)                
-                new_item['hidden_state'] = last_hidden_cell_states[0]
-                new_item['cell_state'] = last_hidden_cell_states[1]
+                new_item = get_new_item(cur_item, candidate)
+                new_item.hidden_state = last_hidden_cell_states[0]
+                new_item.cell_state = last_hidden_cell_states[1]
                 
                 # Check if the new item is a final hypothesis
-                if new_item['hypothetical_id'] == EOS_IDX \
+                if new_item.hypothetical_id == EOS_IDX \
                         or cur_hypo_len >= max_seq_len:
-                    final_hypotheses.append((new_item[0], new_item[1][0]))
+                    final_hypotheses.append((new_item.score, new_item.base_ids))
                 else:
                     heapq.heappush(partial_hypotheses, new_item)
 
