@@ -5,29 +5,40 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
+from dataclasses import dataclass, field
 from general_utils import BOS_IDX, EOS_IDX
 from preprocess_tools import Tokenizer
 from dataclasses_utils import get_dataloader
 
+@dataclass
+class BSNode():
+    score: float = None
+    base_ids: list = None
+    hypothetical_id: float = None
+    hidden_state: torch.Tensor = None
+    cell_state: torch.Tensor = None
 
-def get_new_item(item: dict, topk_pairs) -> None:    
-    for candidate in zip(topk_pairs.values, topk_pairs.indeces):
-        base_hypothesis_score = item['score']
-        cur_ids = item['base_ids'] + [item['hypothetical_id']]
-        cur_hypo_len = len(cur_ids)
-        pair_score = float(candidate[0])  
-        pair_id = int(candidate[1])
+    def __lt__(self, other):
+        return self.score < other.score
 
-        # Create a new item from the current hypothesis and the new candidate
-        base_denormed_score = base_hypothesis_score * np.sqrt(cur_hypo_len)
-        new_score = (base_denormed_score - pair_score) 
-        new_normed_score = new_score / np.sqrt(cur_hypo_len + 1)
-        new_item = {
-            'score': new_normed_score,
-            'base_ids': cur_ids,
-            'hypothetical_id': pair_id
-        }
-        return new_item
+def get_new_item(base_item: BSNode, candidate: tuple) -> None:
+
+    base_hypothesis_score = base_item.score
+    cur_ids = base_item.base_ids + [base_item.hypothetical_id]
+    cur_hypo_len = len(cur_ids)
+    pair_score = float(candidate[0])
+    pair_id = int(candidate[1])
+
+    # Create a new item from the current hypothesis and the new candidate
+    base_denormed_score = base_hypothesis_score * np.sqrt(cur_hypo_len)
+    new_score = (base_denormed_score - pair_score) 
+    new_normed_score = new_score / np.sqrt(cur_hypo_len + 1)
+    new_item = BSNode(
+        score=new_normed_score,
+        base_ids=cur_ids,
+        hypothetical_id=pair_id
+    )
+    return new_item
 
 
 def beamsearch_generation(model: torch.nn.Module,
@@ -70,7 +81,7 @@ def beamsearch_generation(model: torch.nn.Module,
                                                           packed_seq['src_lengths'])
 
         # Initialize the beam search starting item
-        cur_ids = [BOS_IDX]
+        cur_ids = BOS_IDX
         cur_item = {
             'score': 0,
             'base_ids': [],
@@ -95,7 +106,7 @@ def beamsearch_generation(model: torch.nn.Module,
             # Pass the current item through the decoder
             logits, last_hidden_cell_states = model.decoder(
                 model_input_id,
-                last_hidden_cell_states, 
+                last_hidden_cell_states,
                 encoder_output)
 
             # Compute the log probabilities and select the top k candidates
@@ -104,7 +115,7 @@ def beamsearch_generation(model: torch.nn.Module,
 
             cur_hypo_len = len(cur_item['base_ids'])
             # Create new items from the topk candidates
-            for candidate in zip(topk_pairs.values, topk_pairs.indeces):
+            for candidate in zip(topk_pairs.values, topk_pairs.indices):
                 new_item = get_new_item(cur_item, candidate)                
                 new_item['hidden_state'] = last_hidden_cell_states[0]
                 new_item['cell_state'] = last_hidden_cell_states[1]
