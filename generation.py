@@ -5,10 +5,30 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from general_utils import BOS_IDX, EOS_IDX
 from preprocess_tools import Tokenizer
+from rnn_transformer import TransformeRNN
 from dataclasses_utils import get_dataloader
+
+def inference_str2str(row: str,
+                      model: TransformeRNN,
+                      src_tokenizer: Tokenizer,
+                      tgt_tokenizer: Tokenizer):
+    model.eval()
+    src_tokenized = src_tokenizer.tokenize_doc(row)
+    src_encoded = src_tokenizer.encode_doc(src_tokenized)
+    inference_dataloader = get_dataloader([src_encoded], 1, drop_last=False)
+    packed_input = next(iter(inference_dataloader))
+    hypotheses = beamsearch_generation(model,
+                                       packed_input['src_ids'],
+                                       packed_input['src_lengths'])
+    # [0] - top hypothesis, [1] - hypothesis's sequence, [1:] - slice bos token
+    top_sequence = hypotheses[0][1][1:]
+    decoded_doc = tgt_tokenizer.decode_doc(top_sequence)
+    return ' '.join(decoded_doc)
+
+
 
 @dataclass
 class BSNode():
@@ -41,10 +61,9 @@ def get_new_item(base_item: BSNode, candidate: tuple) -> None:
     return new_item
 
 
-def beamsearch_generation(model: torch.nn.Module,
-                          src_seq: str,
-                          src_tokenizer: Tokenizer,
-                          tgt_tokenizer: Tokenizer,
+def beamsearch_generation(model: TransformeRNN,
+                          src_ids: torch.Tensor,
+                          src_lengths: list,
                           max_seq_len: int = 50,
                           beamsize: int = 5,
                           n_hypos: int = 5) -> List[Tuple]:
@@ -53,7 +72,7 @@ def beamsearch_generation(model: torch.nn.Module,
     of text using a pre-trained encoder-decoder model.
 
     Args:
-        src_seq (torch.tensor): 
+        src_ids (torch.tensor): 
             Source string which will be preprocessed and fed into model's encoder.
         max_seq_len (int): 
             The maximum length that the generated sequence can have.
@@ -71,14 +90,9 @@ def beamsearch_generation(model: torch.nn.Module,
     # will only use the model for inference
     with torch.no_grad():
         
-        src_tokenized = src_tokenizer.tokenize_doc(src_seq)
-        src_encoded = src_tokenizer.encode_doc(src_tokenized)
-        inference_dataloader = get_dataloader([src_encoded], batch_size=1, drop_last=False)
-        packed_seq = next(iter(inference_dataloader))
-        
         # Pass the source sequence through the encoder
-        encoder_output, last_hidden_state = model.encoder(packed_seq['src_ids'],
-                                                          packed_seq['src_lengths'])
+        encoder_output, last_hidden_state = model.encoder(src_ids,
+                                                          src_lengths)
 
         # Initialize the beam search starting item
         cur_ids = BOS_IDX
