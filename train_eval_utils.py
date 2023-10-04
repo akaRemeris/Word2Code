@@ -6,6 +6,7 @@ from typing import Callable, List, Tuple
 
 import evaluate
 import torch
+from preprocess_tools import Tokenizer
 from general_utils import EOS_IDX, PAD_IDX
 from rnn_transformer import TransformeRNN
 from torch.utils.data import DataLoader
@@ -462,7 +463,7 @@ def run_train_eval_pipeline(model: TransformeRNN,
         commit_to_tensorboard(config, logger)
 
 
-def save_model(vocabulary: dict, model: TransformeRNN, config: dict) -> None:
+def save_model(tokenizer: Tokenizer, model: TransformeRNN, config: dict) -> None:
     """
     Function saves model in .pth file with 3 separate keys:
         model for model object,
@@ -484,7 +485,7 @@ def save_model(vocabulary: dict, model: TransformeRNN, config: dict) -> None:
     checkpoint = {
         "model": model,
         "model_state_dict": model.state_dict(),
-        "vocabulary": vocabulary
+        "tokenizer": tokenizer
     }
 
     model_file_name = ''.join([config['model_path'],
