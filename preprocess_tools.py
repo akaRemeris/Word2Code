@@ -19,7 +19,7 @@ def dict2dict(foo2wrap):
                 processed_chunk = foo2wrap(self, data_chunk, **kwargs)
                 processed_dict[seq_type] = processed_chunk
             return processed_dict
-        processed_data = foo2wrap(data, **kwargs)
+        processed_data = foo2wrap(self, data, **kwargs)
         return processed_data
     return _wrapper
 

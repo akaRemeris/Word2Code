@@ -1,5 +1,5 @@
 # paths
-dataset_path: './data/'
+dataset_path: './data/ast_traversal/'
 model_path: './model/'
 model_log_path: './experiments/'
 

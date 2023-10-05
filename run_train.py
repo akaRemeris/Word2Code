@@ -8,6 +8,7 @@ from general_utils import init_random_seed
 from preprocess_tools import Tokenizer, read_src_tgt_dataset
 from rnn_transformer import TransformeRNN
 from train_eval_utils import run_train_eval_pipeline, save_model
+from task_specific_utilities import tokenize_question, tokenize_snippet
 
 
 if __name__ == '__main__':
@@ -27,24 +28,46 @@ if __name__ == '__main__':
                                         filename=config['train_dataset'])
     eval_data = read_src_tgt_dataset(path=config['dataset_path'],
                                         filename=config['eval_dataset'])
-    tokenizer = Tokenizer()
+    src_tokenizer = Tokenizer()
+    tgt_tokenizer = Tokenizer()
 
-    train_tokenized = tokenizer.tokenize_corpus(train_data)
-    eval_tokenized = tokenizer.tokenize_corpus(eval_data)
-    tokenizer.build_vocabulary(train_tokenized)
-    train_encoded = tokenizer.encode_corpus(train_tokenized)
-    eval_encoded = tokenizer.encode_corpus(eval_tokenized)
+    # TODO: this is a mess, refactor it, make foo in general utils
+    src_train_tokenized = src_tokenizer.tokenize_corpus(train_data['SRC'])
+    tgt_train_tokenized = tgt_tokenizer.tokenize_corpus(train_data['TGT'])
+    src_eval_tokenized = src_tokenizer.tokenize_corpus(eval_data['SRC'])
+    tgt_eval_tokenized = tgt_tokenizer.tokenize_corpus(eval_data['TGT'])
+
+    src_tokenizer.build_vocabulary(src_train_tokenized)
+    tgt_tokenizer.vocabulary = src_tokenizer.vocabulary.copy()
+
+    src_train_encoded = src_tokenizer.encode_corpus(src_train_tokenized)
+    tgt_train_encoded = tgt_tokenizer.encode_corpus(tgt_train_tokenized)
+    src_eval_encoded = src_tokenizer.encode_corpus(src_eval_tokenized)
+    tgt_eval_encoded = tgt_tokenizer.encode_corpus(tgt_eval_tokenized)
+
+    train_encoded = {
+        'SRC': src_train_encoded,
+        'TGT': tgt_train_encoded
+    }
+
+    eval_encoded = {
+        'SRC': src_eval_encoded,
+        'TGT': tgt_eval_encoded
+    }
+
     train_dataloader = get_dataloader(train_encoded, config['batch_size'])
     eval_dataloader = get_dataloader(eval_encoded, config['batch_size'])
 
-    vocabulary_size = len(tokenizer.vocabulary)
+    src_vocabulary_size = len(src_tokenizer.vocabulary)
+    tgt_vocabulary_size = len(tgt_tokenizer.vocabulary)
+
     init_random_seed(config['seed'])
-    model = TransformeRNN(src_vocabulary_size=vocabulary_size,
-                            tgt_vocabulary_size=vocabulary_size,
+    model = TransformeRNN(src_vocabulary_size=src_vocabulary_size,
+                            tgt_vocabulary_size=tgt_vocabulary_size,
                             config=config)
     run_train_eval_pipeline(model=model,
                             train_dataloader=train_dataloader,
                             eval_dataloader=eval_dataloader,
                             config=config)
     if config['save_model']:
-        save_model(tokenizer, model, config)
+        save_model([src_tokenizer, tgt_tokenizer], model, config)
