@@ -2,7 +2,7 @@
 
 from typing import List, Dict, Union, Callable
 from collections import defaultdict, OrderedDict
-from general_utils import (SEQ_TYPES, PAD_TOKEN, BOS_TOKEN, EOS_TOKEN)
+from general_utils import (SEQ_TYPES, PAD_TOKEN, BOS_TOKEN, EOS_TOKEN, UNK_TOKEN, UNK_IDX)
 
 
 def dict2dict(foo2wrap):
@@ -84,7 +84,7 @@ def default_tokenization(doc: str, skip_special_tokens: bool = False) -> List[st
 # TODO: add documentation
 class Tokenizer():
     def __init__(self,
-                 tokenization_foo: Callable[[list, bool], list]=default_tokenization) -> None:
+                 tokenization_foo: Callable[[str, bool], list]=default_tokenization) -> None:
         self.vocabulary = None
         self.reversed_vocabulary = None
         self.tokenize_doc = tokenization_foo
@@ -125,7 +125,7 @@ class Tokenizer():
     def encode_doc(self, tokenized_doc: List[str]) -> List[int]:
         encoded_doc = []
         for token in tokenized_doc:
-            encoded_doc.append(self.vocabulary[token])
+            encoded_doc.append(self.vocabulary.get(token, UNK_IDX))
         return encoded_doc
     
     def decode_doc(self, encoded_doc: List[str]) -> List[int]:
@@ -193,7 +193,7 @@ class Tokenizer():
                     # to the token, else we add new key and assign 1 to it
                     token_occ_counter[token] += 1
         # sort counted tokens in decreasing order and append them to special tokens
-        special_tokens = [PAD_TOKEN, BOS_TOKEN, EOS_TOKEN]
+        special_tokens = [PAD_TOKEN, BOS_TOKEN, EOS_TOKEN, UNK_TOKEN]
 
         # reset special tokens counters
         for special_token in special_tokens:
