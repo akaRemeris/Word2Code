@@ -164,7 +164,9 @@ class Tokenizer():
         return encoded_corpus
 
     def build_vocabulary(self,
-                         tokenized_data: Union[dict, list]) -> None:
+                         tokenized_data: Union[dict, list],
+                         max_token_freq: float = 2,
+                         min_token_count: int = 0) -> None:
         """
         This function takes dict of SRC and TGT lists of strings. 
         Performs basic split tokenization on each row and initialize 
@@ -182,9 +184,11 @@ class Tokenizer():
 
         # iterate through all list or dict data chunks
         for data_chunk in self._get_data_chunk(tokenized_data):
+            doc_counter = 0
             for tokenized_doc in data_chunk:
+                doc_counter += 1
                 # tokenize and produce iteration by each token
-                for token in tokenized_doc:
+                for token in set(tokenized_doc):
                     # if vocabulary contains token, we increment value assigned
                     # to the token, else we add new key and assign 1 to it
                     token_occ_counter[token] += 1
@@ -198,9 +202,15 @@ class Tokenizer():
             except KeyError:
                 pass
 
+        filtered_occurances = {
+            token: n_occurances for token, n_occurances in token_occ_counter.items()
+            if n_occurances/doc_counter <= max_token_freq
+            and n_occurances >= min_token_count
+        }
+
         sorted_keys = special_tokens + sorted(
-            token_occ_counter,
-            key=lambda x: (token_occ_counter[x], x),
+            filtered_occurances,
+            key=lambda x: (filtered_occurances[x], x),
             reverse=True)
 
         # assign id for each token according to their sorted position
