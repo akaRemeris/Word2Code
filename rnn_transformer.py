@@ -104,9 +104,9 @@ class Encoder(torch.nn.Module):
             batch_first=True
         )
 
-        h_last = torch.cat((last_hidden_cell_states[0][0], 
+        h_last = torch.cat((last_hidden_cell_states[0][0],
                             last_hidden_cell_states[0][1]), dim=-1)
-        
+
         h_last_tunned = self.h_last_activation(
             self.h_last_transform(h_last)
         ).unsqueeze(0)
@@ -131,7 +131,7 @@ class Attention(torch.nn.Module):
 
         # Initialize linear transformation for 
         # the concatenation of encoder and decoder hidden states.
-        self.h_matrix_transform = torch.nn.Linear(enc_h_size + dec_h_size, 
+        self.h_matrix_transform = torch.nn.Linear(2 * enc_h_size + dec_h_size, 
                                                   dec_h_size)
         self.attn_activation = torch.nn.Tanh()
         
@@ -213,12 +213,12 @@ class Decoder(torch.nn.Module):
     """
     
     def __init__(
-            self, 
-            tgt_vocabulary_size: int, 
-            encoder_embedding_size: int, 
-            decoder_embedding_size: int, 
+            self,
+            tgt_vocabulary_size: int,
+            encoder_embedding_size: int,
+            decoder_embedding_size: int,
             hidden_state_size: int,
-            n_layers: int = 1, 
+            n_layers: int = 1,
             dropout: float = 0.1
     ) -> None:
         
@@ -228,14 +228,14 @@ class Decoder(torch.nn.Module):
         
         self.dropout = torch.nn.Dropout(dropout)
         
-        self.attention = Attention(2 * encoder_embedding_size, 
-                                   decoder_embedding_size)
+        self.attention = Attention(hidden_state_size,
+                                   hidden_state_size)
         
-        lstm_input_size = encoder_embedding_size * 2 + decoder_embedding_size
+        lstm_input_size = hidden_state_size * 2 + decoder_embedding_size
         self.lstm = torch.nn.LSTM(
-            lstm_input_size, 
-            hidden_state_size, 
-            n_layers, 
+            lstm_input_size,
+            hidden_state_size,
+            n_layers,
             batch_first=True
         )
         
@@ -243,9 +243,9 @@ class Decoder(torch.nn.Module):
                                              tgt_vocabulary_size)
 
     def forward(self, 
-                tgt_ids: torch.tensor, 
-                last_hidden_cell_states: torch.tensor, 
-                encoder_outputs: torch.tensor, 
+                tgt_ids: torch.tensor,
+                last_hidden_cell_states: torch.tensor,
+                encoder_outputs: torch.tensor,
                 padding_src_mask: torch.tensor = None
                 ) -> Tuple[torch.tensor, torch.tensor]:
         """
@@ -291,7 +291,7 @@ class Decoder(torch.nn.Module):
         
         rnn_output, last_hidden_cell_states = self.lstm(
             rnn_input, 
-            (last_hidden_cell_states[0], 
+            (last_hidden_cell_states[0],
              last_hidden_cell_states[1])
         )
 
@@ -382,22 +382,22 @@ class TransformeRNN(torch.nn.Module):
         # pass the input sequence and their lengths through the encoder
         encoder_output, last_hidden_state = self.encoder(src_ids, src_lengths)
         
-        padding_src_mask = (src_ids == PAD_IDX)        
-        last_hidden_cell_states = (last_hidden_state, 
+        padding_src_mask = (src_ids == PAD_IDX)
+        last_hidden_cell_states = (last_hidden_state,
                                    torch.zeros(last_hidden_state.shape))
         output = torch.full((batch_size, 1), BOS_IDX)
-        
+
         for t in range(max_sequence_len):
-            
+
             # do a forward pass through the decoder
             output, last_hidden_cell_states = self.decoder(
-                tgt_ids=output, 
-                last_hidden_cell_states=last_hidden_cell_states, 
-                encoder_outputs=encoder_output, 
+                tgt_ids=output,
+                last_hidden_cell_states=last_hidden_cell_states,
+                encoder_outputs=encoder_output,
                 padding_src_mask=padding_src_mask
             )
-            
-            outputs[:, t] = output            
+
+            outputs[:, t] = output
             # either use for next prediction reference or predicted token_id
             is_teacher = random.random() < teacher_forcing_ratio
             top1 = output.data.max(1)[1]
