@@ -18,7 +18,7 @@ eval_dataset:
 
 
 # logging and saving options
-log_run_name: 'test_run_fixed_hidden_states'
+log_run_name: 'test_after_deploy'
 save_logs: False
 save_model: True
 verbose: True
@@ -28,6 +28,6 @@ learning_rate: .003
 max_epoch: 10
 batch_size: 32
 seed: 42
-embedding_size: 50
+embedding_size: 75
 hidden_size: 100
 embedding_dropout: 0.0
