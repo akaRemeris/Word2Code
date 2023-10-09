@@ -189,7 +189,7 @@ def produce_epoch_train(model: TransformeRNN, optimizer: torch.optim.AdamW,
         epoch_refs += batch['tgt_ids'].tolist()
 
         # Compute the loss and do backpropagation
-        target_ids = batch['tgt_ids'].flatten()
+        target_ids = batch['tgt_ids'].flatten().to(model.device)
         predicted_ids = model_output.view(-1, model.tgt_vocabulary_size)
         loss = loss_foo(predicted_ids, target_ids)
         loss.backward()
@@ -259,7 +259,7 @@ def produce_epoch_eval(model: TransformeRNN,
             epoch_refs += batch['tgt_ids'].tolist()
 
             # compute the loss on the batch
-            target_ids = batch['tgt_ids'].flatten()
+            target_ids = batch['tgt_ids'].flatten().to(model.device)
             predicted_ids = model_output.view(-1, model.tgt_vocabulary_size)
             loss = loss_foo(predicted_ids, target_ids)
             batch_loss += loss.item()

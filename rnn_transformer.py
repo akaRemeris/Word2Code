@@ -215,23 +215,22 @@ class Decoder(torch.nn.Module):
     def __init__(
             self,
             tgt_vocabulary_size: int,
-            encoder_embedding_size: int,
-            decoder_embedding_size: int,
+            embedding_size: int,
             hidden_state_size: int,
             n_layers: int = 1,
             dropout: float = 0.1
     ) -> None:
         
         super(Decoder, self).__init__()
-        self.get_embeddings = torch.nn.Embedding(tgt_vocabulary_size, 
-                                                 decoder_embedding_size)
+        self.get_embeddings = torch.nn.Embedding(tgt_vocabulary_size,
+                                                 embedding_size)
         
         self.dropout = torch.nn.Dropout(dropout)
         
         self.attention = Attention(hidden_state_size,
                                    hidden_state_size)
         
-        lstm_input_size = hidden_state_size * 2 + decoder_embedding_size
+        lstm_input_size = hidden_state_size * 2 + embedding_size
         self.lstm = torch.nn.LSTM(
             lstm_input_size,
             hidden_state_size,
@@ -345,10 +344,12 @@ class TransformeRNN(torch.nn.Module):
                                dropout=config['embedding_dropout'])
         
         self.decoder = Decoder(tgt_vocabulary_size=tgt_vocabulary_size, 
-                               encoder_embedding_size=config['embedding_size'], 
-                               decoder_embedding_size=config['embedding_size'], 
+                               embedding_size=config['embedding_size'], 
                                hidden_state_size=config['hidden_size'], 
                                dropout=config['embedding_dropout'])
+        
+        self.device = torch.device(config['device'])
+        self.to(self.device)
 
     def forward(self, 
                 src_ids: torch.tensor, 
@@ -373,19 +374,23 @@ class TransformeRNN(torch.nn.Module):
         Returns:
             A tensor containing the decoder output.
         """
+        src_ids = src_ids.to(self.device)
+        tgt_ids = tgt_ids.to(self.device)
+
+        # pass the input sequence and their lengths through the encoder
+        encoder_output, last_hidden_state = self.encoder(src_ids, src_lengths)
+
         batch_size, max_sequence_len = tgt_ids.shape
         tgt_vocabulary_size = self.decoder.get_embeddings.weight.shape[0]
         outputs = torch.zeros(batch_size, 
                               max_sequence_len, 
-                              tgt_vocabulary_size)
+                              tgt_vocabulary_size).to(self.device)
         
-        # pass the input sequence and their lengths through the encoder
-        encoder_output, last_hidden_state = self.encoder(src_ids, src_lengths)
-        
-        padding_src_mask = (src_ids == PAD_IDX)
-        last_hidden_cell_states = (last_hidden_state,
-                                   torch.zeros(last_hidden_state.shape))
-        output = torch.full((batch_size, 1), BOS_IDX)
+        padding_src_mask = (src_ids == PAD_IDX).to(self.device)
+
+        initial_cell_state = torch.zeros(last_hidden_state.shape).to(self.device)
+        last_hidden_cell_states = (last_hidden_state, initial_cell_state)
+        output = torch.full((batch_size, 1), BOS_IDX).to(self.device)
 
         for t in range(max_sequence_len):
 
