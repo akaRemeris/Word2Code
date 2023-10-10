@@ -28,8 +28,8 @@ if __name__ == '__main__':
                                         filename=config['train_dataset'])
     eval_data = read_src_tgt_dataset(path=config['dataset_path'],
                                         filename=config['eval_dataset'])
-    src_tokenizer = Tokenizer()
-    tgt_tokenizer = Tokenizer()
+    src_tokenizer = Tokenizer(tokenize_question)
+    tgt_tokenizer = Tokenizer(tokenize_snippet)
 
     # TODO: this is a mess, refactor it, make foo in general utils
     src_train_tokenized = src_tokenizer.tokenize_corpus(train_data['SRC'])
@@ -37,8 +37,8 @@ if __name__ == '__main__':
     src_eval_tokenized = src_tokenizer.tokenize_corpus(eval_data['SRC'])
     tgt_eval_tokenized = tgt_tokenizer.tokenize_corpus(eval_data['TGT'])
 
-    src_tokenizer.build_vocabulary(src_train_tokenized)
-    tgt_tokenizer.vocabulary = src_tokenizer.vocabulary.copy()
+    src_tokenizer.build_vocabulary(src_train_tokenized, min_token_count=3)
+    tgt_tokenizer.build_vocabulary(tgt_train_tokenized, min_token_count=5)
 
     src_train_encoded = src_tokenizer.encode_corpus(src_train_tokenized)
     tgt_train_encoded = tgt_tokenizer.encode_corpus(tgt_train_tokenized)
