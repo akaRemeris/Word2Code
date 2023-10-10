@@ -37,8 +37,12 @@ if __name__ == '__main__':
     src_eval_tokenized = src_tokenizer.tokenize_corpus(eval_data['SRC'])
     tgt_eval_tokenized = tgt_tokenizer.tokenize_corpus(eval_data['TGT'])
 
-    src_tokenizer.build_vocabulary(src_train_tokenized, min_token_count=3)
-    tgt_tokenizer.build_vocabulary(tgt_train_tokenized, min_token_count=5)
+    src_tokenizer.build_vocabulary(src_train_tokenized,
+                                   min_token_count=config['src_min_token_count'],
+                                   max_token_freq=config['src_max_token_freq'])
+    tgt_tokenizer.build_vocabulary(tgt_train_tokenized,
+                                   min_token_count=config['tgt_min_token_count'],
+                                   max_token_freq=config['tgt_max_token_freq'])
 
     src_train_encoded = src_tokenizer.encode_corpus(src_train_tokenized)
     tgt_train_encoded = tgt_tokenizer.encode_corpus(tgt_train_tokenized)

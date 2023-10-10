@@ -7,9 +7,7 @@ train_dataset:
   'SRC': 
     'src-train.csv'
   'TGT': 
-    'tgt-train.csv'
-
-  
+    'tgt-train.csv'  
 eval_dataset: 
   'SRC': 
     'src-eval.csv'
@@ -23,14 +21,22 @@ save_logs: False
 save_model: True
 verbose: True
 
-# model hyperpaprameters
-device: 'cpu'
-learning_rate: .003 
-max_epoch: 3
+# data processing parameters
 batch_size: 32
+src_min_token_count: 3
+src_max_token_freq: 1
+tgt_min_token_count: 5
+tgt_max_token_freq: 1
+
+# train/eval parameters
+max_epoch: 3
 seed: 42
+metric: None
+device: 'cuda'
+
+# model hyperpaprameters
+learning_rate: .003 
 embedding_size: 75
 hidden_size: 100
-embedding_size: 100
-hidden_size: 100
+embedding_size: 150
 embedding_dropout: 0.0
