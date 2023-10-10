@@ -104,7 +104,7 @@ def compute_rouge_metric(preds: List[List[int]],
     return score['rougeL']
 
 
-def compute_em_metric(preds, refs):
+def compute_em_metric_pluged(preds, refs):
     """
         Computes the EM score between two lists of integer sequences.
 
@@ -134,6 +134,10 @@ def compute_em_metric(preds, refs):
     # normalize by length
     exact_match = matches_counter / len(preds)
     return exact_match
+
+def compute_em_metric(preds, refs):
+    return 0
+
 
 
 def produce_epoch_train(model: TransformeRNN, optimizer: torch.optim.AdamW,

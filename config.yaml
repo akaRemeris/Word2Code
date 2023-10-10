@@ -1,20 +1,20 @@
 # paths
-dataset_path: './data/ast_traversal/'
+dataset_path: './data/conala/'
 model_path: './model/'
 model_log_path: './experiments/'
 
 train_dataset: 
   'SRC': 
-    'src-train.txt'
+    'src-train.csv'
   'TGT': 
-    'tgt-train.txt'
+    'tgt-train.csv'
 
   
 eval_dataset: 
   'SRC': 
-    'src-val.txt'
+    'src-eval.csv'
   'TGT':
-    'tgt-val.txt'
+    'tgt-eval.csv'
 
 
 # logging and saving options
@@ -26,9 +26,11 @@ verbose: True
 # model hyperpaprameters
 device: 'cpu'
 learning_rate: .003 
-max_epoch: 10
+max_epoch: 3
 batch_size: 32
 seed: 42
 embedding_size: 75
+hidden_size: 100
+embedding_size: 100
 hidden_size: 100
 embedding_dropout: 0.0

@@ -9,9 +9,11 @@ SEQ_TYPES = ['SRC', 'TGT']
 PAD_TOKEN = '<PAD>'
 BOS_TOKEN = '<BOS>'
 EOS_TOKEN = '<EOS>'
+UNK_TOKEN = '<UNK>'
 PAD_IDX = 0
 BOS_IDX = 1
 EOS_IDX = 2
+UNK_IDX = 3
 
 
 def init_random_seed(value=42):
