@@ -5,10 +5,10 @@ import argparse
 import yaml
 from dataclasses_utils import get_dataloader
 from general_utils import init_random_seed
-from preprocess_tools import Tokenizer, read_src_tgt_dataset
+from preprocess_tools import Tokenizer, read_src_tgt_dataset, default_tokenization
 from rnn_transformer import TransformeRNN
 from train_eval_utils import run_train_eval_pipeline, save_model
-from task_specific_utilities import tokenize_question, tokenize_snippet
+from task_specific_utilities import tokenize_src_doc, tokenize_tgt_doc
 
 
 if __name__ == '__main__':
@@ -28,10 +28,12 @@ if __name__ == '__main__':
                                         filename=config['train_dataset'])
     eval_data = read_src_tgt_dataset(path=config['dataset_path'],
                                         filename=config['eval_dataset'])
-    src_tokenizer = Tokenizer(tokenize_question)
-    tgt_tokenizer = Tokenizer(tokenize_snippet)
 
-    # TODO: this is a mess, refactor it, make foo in general utils
+    src_tokenizer = Tokenizer(tokenize_src_doc if config['custom_tokenization']
+                              else default_tokenization)
+    tgt_tokenizer = Tokenizer(tokenize_tgt_doc if config['custom_tokenization']
+                              else default_tokenization)
+
     src_train_tokenized = src_tokenizer.tokenize_corpus(train_data['SRC'])
     tgt_train_tokenized = tgt_tokenizer.tokenize_corpus(train_data['TGT'])
     src_eval_tokenized = src_tokenizer.tokenize_corpus(eval_data['SRC'])
