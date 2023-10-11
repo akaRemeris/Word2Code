@@ -103,8 +103,41 @@ def compute_rouge_metric(preds: List[List[int]],
     score = rouge_score.compute(references=refs, predictions=preds)
     return score['rougeL']
 
+def compute_bleu_metric(preds: List[List[int]],
+                         refs: List[List[int]]) -> float:
+    """
+    Computes the ROUGE L score between two lists of integer sequences.
 
-def compute_em_metric_pluged(preds, refs):
+    Args:
+        preds (List[List[int]]): A list of integer
+            sequences representing predicted summaries.
+        refs (List[List[int]]): A list of integer
+            sequences representing reference summaries.
+
+    Returns:
+        float: A floating point number representing the ROUGE L score.
+    """
+    # Torch's tolist() tends to squeeze original tensor with single value,
+    # so we have to restore dimentiality
+    if isinstance(preds[0], int):
+        preds = [preds]
+        refs = [refs]
+
+    # trancuate sequence to exclude padding ids
+    preds = list(map(truncate_sequence, preds))
+    refs = list(map(truncate_sequence, refs))
+
+    # convert list of ints into rows
+    preds = list(map(convert_to_str, preds))
+    refs = list(map(convert_to_str, refs))
+
+    # compute the ROUGE L score
+    # ain't a good thing
+    blue_score = evaluate.load('bleu')
+    score = blue_score.compute(references=refs, predictions=preds)
+    return score['bleu']
+
+def compute_em_metric(preds, refs):
     """
         Computes the EM score between two lists of integer sequences.
 
@@ -134,10 +167,6 @@ def compute_em_metric_pluged(preds, refs):
     # normalize by length
     exact_match = matches_counter / len(preds)
     return exact_match
-
-def compute_em_metric(preds, refs):
-    return 0
-
 
 
 def produce_epoch_train(model: TransformeRNN, optimizer: torch.optim.AdamW,
@@ -459,7 +488,7 @@ def run_train_eval_pipeline(model: TransformeRNN,
         optimizer=optimizer,
         loss_foo=loss_foo,
         max_epoch=config['max_epoch'],
-        metric_foo=compute_em_metric,
+        metric_foo=compute_bleu_metric,
         verbose=config['verbose']
     )
 
