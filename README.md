@@ -1,12 +1,12 @@
 # torch_LSTM2LSTM
 
 ## General description
-Unified implementation of a neural network based on the Transformer architecture. The cores of the Transformer's modules are recurrent neural networks, Encoder's backbone is - BiLSTM, and Decoder's backbone is - LSTM. The connection between modules is established through the mechanism of additive attention.
+Unified implementation of a neural network based on Transformer architecture. Cores of the Transformer's modules are recurrent neural networks, Encoder's backbone is - BiLSTM, and Decoder's backbone is - LSTM. Connection between modules is established through the mechanism of additive attention.
 Original model archetecture including attention mechanism were introdused in [2014 paper](https://arxiv.org/abs/1409.0473), current model implemented based of a [demonstrational Pytorch implementation](https://github.com/bentrevett/pytorch-seq2seq).
 
-### Input data format description
+### Usage prescription
 <p>
-Model is pretty much ready to deal with any kind of simple seq2seq tasks (MT, abstract summarization, so on). You just have to provide your own task specific data and define tokenization functions. After training, you may find useful a generation pipeline from generation.py.
+Model is pretty much ready to deal with any kind of simple seq2seq tasks (MT, abstract summarization, so on). You just have to provide your own task specific data and define tokenization functions in task_specific_utilities.py. After training, you may find useful generation pipeline from generation.py.
 </p>
 
 
@@ -20,7 +20,7 @@ vocabulary building, encoding, e.t.c.
 * **train_eval_utils.py** - functions for model training and validation.
 * **general_utils.py** - model special tokens, ids, and random seed initialization function definition
 * **generation.py** - contains beamsearch and high lvl inference functions (str2str)
-* **task_specific_utilities.py** - contain definitions of custom tokenizers.
+* **task_specific_utilities.py** - contains definitions of custom tokenizers.
 
 * `/model/` - default directory for model's files.
 * `/experiments/` - default directory with TensorBorad logs.
