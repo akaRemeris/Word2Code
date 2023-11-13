@@ -21,42 +21,53 @@ vocabulary building, encoding, e.t.c.
 * **general_utils.py** - model special tokens, ids, and random seed initialization function definition
 * **generation.py** - contains beamsearch and high lvl inference functions (str2str)
 * **task_specific_utilities.py** - contains definitions of custom tokenizers.
-
 * `/model/` - default directory for model's files.
 * `/experiments/` - default directory with TensorBorad logs.
+* **config.yaml** - general config which cointains core training parameters.
 
-* **config.yaml** - general config with following parameters:
-    * paths and file names:
-        * datasets_path - path to files with saved dataset.
-        * model_path - path where model is to be saved.
-        * train_dataset - dictionary with two filenames which contain source and target sequences for training
-        * train_dataset - dictionary with two filenames which contain source and target sequences for validation
-    * logging and saving options:
-        * log_run_name - name of pth file and directory contains tensorboard's logs
-        * save_logs - flag if logs (loss and metric) are to be saved.
-        * save_model - flag if model is to be saved after tranining.
-        * verbose - flag if training and validation information is to be printed in the console.
+## Parameters
+**Paths and file names**
+| Command | Description |
+| --- | --- |
+|datasets_path | path to files with saved dataset|
+|model_path|path where model is to be saved|
+|train_dataset|dictionary with two filenames which contain source and target sequences for training|
+|eval_dataset|dictionary with two filenames which contain source and target sequences for validation|
 
-    * data processing parameters:
-        * custom_tokenization - flag if to use custom defiened tokenizers from task_specific_utilities.py
-        * src_min_token_count - minimum documents containing token for it to be included into vocabulary of source sequences
-        * src_max_token_freq - maximum documents containing token/len(corpus) for it to be included into vocabulary of source sequences
-        * tgt_min_token_count - minimum documents containing token for it to be included into vocabulary of target sequences
-        * tgt_max_token_freq - maximum documents containing token/len(corpus) for it to be included into vocabulary of target sequences
+**Logging and saving options**
+| Command | Description |
+| --- | --- |
+|log_run_name|name of pth file and directory contains tensorboard's logs|
+|save_logs|flag if logs (loss and metric) are to be saved|
+|save_model|flag if model is to be saved after tranining|
+|verbose|flag if training and validation information is to be printed in the console|
 
-    * model parameters:
-        * embedding_size - size of encoder and decoder embeddings
-        * hidden_size - size of encoder's and decoder's LSTMs hidden states
-        * dropout - embedding dropout probability
+**Data processing parameters**
+| Command | Description |
+| --- | --- |
+|custom_tokenization|flag if to use custom defiened tokenizers from `task_specific_utilities.py`|
+|src_min_token_count|minimum documents containing token for it to be included into vocabulary of source sequences|
+|src_max_token_freq|maximum documents containing token/len(corpus) for it to be included into vocabulary of source sequences|
+|tgt_min_token_count|minimum documents containing token for it to be included into vocabulary of target sequences|
+|tgt_max_token_freq|maximum documents containing token/len(corpus) for it to be included into vocabulary of target sequences|
 
-    * train/eval parameters:
-        * learning_rate - gradient step scale
-        * max_epoch - number of full data iterations
-        * batch_size - number of chunks in dataset iterators
-        * seed - general initial number of PRNG
-        * metric - wip, untill then set to None
-        * device - 'cuda' or 'cpu'
-        
+**Model parameters**
+| Command | Description |
+| --- | --- |
+|embedding_size|size of encoder and decoder embeddings|
+|hidden_size|size of encoder's and decoder's LSTMs hidden states|
+|dropout|embedding dropout probability|
+
+**Train/eval parameters**
+| Command | Description |
+| --- | --- |
+|learning_rate|gradient step scale|
+|max_epoch|number of chunks in dataset iterators|
+|batch_size|general initial number of PRNG|
+|seed|general initial number of PRNG|
+|metric|wip, until then set to None|
+|device|'cuda' or 'cpu'|
+
 
 ## How to run
 Config by default config.yaml:
