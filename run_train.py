@@ -6,7 +6,7 @@ import yaml
 from dataclasses_utils import get_dataloader
 from general_utils import init_random_seed
 from preprocess_tools import Tokenizer, read_src_tgt_dataset, default_tokenization
-from rnn_transformer import TransformeRNN
+from seq2seq_model import Seq2SeqModel
 from train_eval_utils import run_train_eval_pipeline, save_model
 from task_specific_utilities import tokenize_src_doc, tokenize_tgt_doc
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     tgt_vocabulary_size = len(tgt_tokenizer.vocabulary)
 
     init_random_seed(config['seed'])
-    model = TransformeRNN(src_vocabulary_size=src_vocabulary_size,
+    model = Seq2SeqModel(src_vocabulary_size=src_vocabulary_size,
                             tgt_vocabulary_size=tgt_vocabulary_size,
                             config=config)
     run_train_eval_pipeline(model=model,

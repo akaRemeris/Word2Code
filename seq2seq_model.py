@@ -1,4 +1,4 @@
-"""Seq2seq transformer model and it's modules classes."""
+"""Seq2seq model and it's modules classes."""
 
 import heapq
 import random
@@ -304,7 +304,7 @@ class Decoder(torch.nn.Module):
         return out_proj, last_hidden_cell_states
 
     
-class TransformeRNN(torch.nn.Module):
+class Seq2SeqModel(torch.nn.Module):
     
     """
     PyTorch module that implements an encoder-decoder 
@@ -333,7 +333,7 @@ class TransformeRNN(torch.nn.Module):
                  src_vocabulary_size: int, tgt_vocabulary_size: int, 
                  config: dict) -> None:
 
-        super(TransformeRNN, self).__init__()
+        super(Seq2SeqModel, self).__init__()
         
         self.src_vocabulary_size = src_vocabulary_size
         self.tgt_vocabulary_size = tgt_vocabulary_size

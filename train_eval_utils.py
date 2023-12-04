@@ -8,7 +8,7 @@ import evaluate
 import torch
 from preprocess_tools import Tokenizer
 from general_utils import EOS_IDX, PAD_IDX
-from rnn_transformer import TransformeRNN
+from seq2seq_model import Seq2SeqModel
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
@@ -169,7 +169,7 @@ def compute_em_metric(preds, refs):
     return exact_match
 
 
-def produce_epoch_train(model: TransformeRNN, optimizer: torch.optim.AdamW,
+def produce_epoch_train(model: Seq2SeqModel, optimizer: torch.optim.AdamW,
                         loss_foo: Callable, train_dataloader: DataLoader,
                         metric_foo: Callable = None) -> Tuple[float,
                                                               float,
@@ -179,7 +179,7 @@ def produce_epoch_train(model: TransformeRNN, optimizer: torch.optim.AdamW,
     and loss function on the given training data.
 
     Args:
-        model (TransformeRNN):
+        model (Seq2SeqModel):
             PyTorch model to train
         optimizer (AdamW):
             Optimizer for updating the model's parameters
@@ -246,7 +246,7 @@ def produce_epoch_train(model: TransformeRNN, optimizer: torch.optim.AdamW,
     return epoch_mean_loss, training_time, metric
 
 
-def produce_epoch_eval(model: TransformeRNN,
+def produce_epoch_eval(model: Seq2SeqModel,
                        loss_foo: Callable,
                        eval_dataloader: DataLoader,
                        metric_foo: Callable = None) -> Tuple[float,
@@ -311,7 +311,7 @@ def produce_epoch_eval(model: TransformeRNN,
     return epoch_mean_loss, procedure_time, metric
 
 
-def epochwise_train_eval_with_logging(model: TransformeRNN,
+def epochwise_train_eval_with_logging(model: Seq2SeqModel,
                                       train_dataloader: DataLoader,
                                       eval_dataloader: DataLoader,
                                       optimizer: torch.optim,
@@ -324,7 +324,7 @@ def epochwise_train_eval_with_logging(model: TransformeRNN,
     and basic logging functionality.
 
     Args:
-        model (TransformeRNN):
+        model (Seq2SeqModel):
             Model, subclass of torch.nn.Module to be trained.
         train_dataloader (DataLoader):
             Torch data iterator which returns
@@ -454,7 +454,7 @@ def commit_to_tensorboard(config: dict, logger: ModelLog) -> None:
     writer.close()
 
 
-def run_train_eval_pipeline(model: TransformeRNN,
+def run_train_eval_pipeline(model: Seq2SeqModel,
                             train_dataloader: DataLoader,
                             eval_dataloader: DataLoader,
                             config: dict) -> None:
@@ -464,7 +464,7 @@ def run_train_eval_pipeline(model: TransformeRNN,
     set in config and allows to commit results to tensorboard if requested.
 
     Args:
-        model (TransformeRNN):
+        model (Seq2SeqModel):
             Seq2Seq autoregression model with BiLSTM as encoder's
             backbone and LSTM as decoder's backbone.
         train_dataloader (DataLoader):
@@ -496,7 +496,7 @@ def run_train_eval_pipeline(model: TransformeRNN,
         commit_to_tensorboard(config, logger)
 
 
-def save_model(tokenizer: Tokenizer, model: TransformeRNN, config: dict) -> None:
+def save_model(tokenizer: Tokenizer, model: Seq2SeqModel, config: dict) -> None:
     """
     Function saves model in .pth file with 3 separate keys:
         model for model object,
@@ -507,8 +507,8 @@ def save_model(tokenizer: Tokenizer, model: TransformeRNN, config: dict) -> None
         vocabulary (dict):
             Dictionary with tokens as keys and token ids
             as values on which model was trained.
-        model (TransformeRNN):
-            Object of TransformeRNN, subclass of torch.nn.Module
+        model (Seq2SeqModel):
+            Object of Seq2SeqModel, subclass of torch.nn.Module
         config (dict):
             General config which contains hyperparameters of the model,
             where the name of the parameter is config's key

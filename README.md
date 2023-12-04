@@ -1,7 +1,7 @@
 # torch_LSTM2LSTM
 
 ## General description
-Unified implementation of a neural network based on Transformer architecture. Cores of the Transformer's modules are recurrent neural networks, Encoder's backbone is - BiLSTM, and Decoder's backbone is - LSTM. Connection between modules is established through the mechanism of additive attention.
+Unified implementation of a neural network based on Seq2Seq model architecture. Core modules are recurrent neural networks, Encoder's backbone is - BiLSTM, and Decoder's backbone is - LSTM. Connection between modules is established through the mechanism of additive attention.
 Original model archetecture including attention mechanism were introdused in [2014 paper](https://arxiv.org/abs/1409.0473), current model implemented based of a [demonstrational Pytorch implementation](https://github.com/bentrevett/pytorch-seq2seq).
 
 ### Usage prescription
@@ -13,7 +13,7 @@ Model is pretty much ready to deal with any kind of simple seq2seq tasks (MT, ab
 ## Project structure
 
 * **run_train.py** - main script for model training and validation.
-* **rnn_transformer.py** - module contains seq2seq model definition with all it's sub-modules e.i. encoder, decoder, attention.
+* **seq2seq_model.py** - module contains seq2seq model definition with all it's sub-modules e.i. encoder, decoder, attention.
 * **preprocess_utils.py** - functions and classes for data preprocess e.i. Tokenizer for tokenization,
 vocabulary building, encoding, e.t.c.
 * **dataclasses_utils.py** - classes for iteratable batching of preprocessed data.

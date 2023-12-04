@@ -8,11 +8,11 @@ import torch
 from dataclasses import dataclass
 from general_utils import BOS_IDX, EOS_IDX
 from preprocess_tools import Tokenizer
-from rnn_transformer import TransformeRNN
+from seq2seq_model import Seq2SeqModel
 from dataclasses_utils import get_dataloader
 
 def inference_str2str(row: str,
-                      model: TransformeRNN,
+                      model: Seq2SeqModel,
                       src_tokenizer: Tokenizer,
                       tgt_tokenizer: Tokenizer):
     model.eval()
@@ -61,7 +61,7 @@ def get_new_item(base_item: BSNode, candidate: tuple) -> None:
     return new_item
 
 
-def beamsearch_generation(model: TransformeRNN,
+def beamsearch_generation(model: Seq2SeqModel,
                           src_ids: torch.Tensor,
                           src_lengths: list,
                           max_seq_len: int = 50,
